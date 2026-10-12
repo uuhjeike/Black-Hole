@@ -3,7 +3,6 @@
 
 const CONFIG = {
   posts: 'https://github.com/uuhjeike/Black-Hole/blob/main/Post.txt',
-  photo: 'https://github.com/uuhjeike/Black-Hole/blob/main/IMG_20261012_192207.jpg',
   video: 'https://github.com/uuhjeike/Black-Hole/blob/main/5591d7a8efe3e0b7661923ecab104dfa.mp4',
   pageSize: 6 // posts drawn per batch while scrolling
 };
@@ -82,7 +81,8 @@ function parsePosts(text) {
     .filter(l => !/^\s*\/\//.test(l));
   const blocks = [[]];
   for (const l of lines) {
-    if (l.trim() === '$') blocks.push([]); else blocks[blocks.length - 1].push(l);
+    if (/^(?:\$|\(-\s*Post\s*-\)|---POST---)$/i.test(l.trim())) blocks.push([]);
+    else blocks[blocks.length - 1].push(l);
   }
   let bio = '';
   const posts = [];
@@ -117,7 +117,7 @@ function linkify(node, str) {
 function start() {
   const html = document.documentElement;
   const bg = $('bg'), feed = $('feed'), list = $('list'), stateEl = $('state'), moreBtn = $('more');
-  const countEl = $('count'), bioEl = $('bio'), avatar = $('avatar'), avatarImg = $('avatar-img');
+  const countEl = $('count'), bioEl = $('bio'), avatar = $('avatar'), avatarVideo = $('avatar-video');
   const viewer = $('viewer'), vimg = $('viewer-img'), vnote = $('viewer-note');
   const reduce = matchMedia('(prefers-reduced-motion: reduce)');
   const saveData = !!(navigator.connection && navigator.connection.saveData);
@@ -203,12 +203,26 @@ function start() {
     if (Math.abs(dx) > 50 && Math.abs(dx) > Math.abs(dy) * 1.5) step(dx < 0 ? 1 : -1);
   }, { passive: true });
 
-  /* Profile photo */
-  avatarImg.addEventListener('error', () => avatar.classList.add('noimg'));
-  avatarImg.src = toRaw(CONFIG.photo);
-  avatar.addEventListener('click', () => {
-    if (avatarImg.naturalWidth) openViewer([{ src: avatarImg.src, label: 'Profile photo' }], 0, avatar);
+  /* Square video profile: centred crop, muted autoplay and loop. */
+  function startAvatarVideo() {
+    avatarVideo.muted = true;
+    avatarVideo.loop = true;
+    avatarVideo.autoplay = true;
+    avatarVideo.playsInline = true;
+    avatarVideo.preload = 'metadata';
+    avatarVideo.src = toRaw(CONFIG.video);
+    avatarVideo.addEventListener('error', () => avatar.classList.add('video-error'), { once: true });
+    if (!reduce.matches) avatarVideo.play().catch(() => {});
+  }
+  document.addEventListener('visibilitychange', () => {
+    if (document.hidden || reduce.matches) avatarVideo.pause();
+    else avatarVideo.play().catch(() => {});
   });
+  reduce.addEventListener('change', () => {
+    if (reduce.matches) avatarVideo.pause();
+    else if (!document.hidden) avatarVideo.play().catch(() => {});
+  });
+  startAvatarVideo();
 
   /* Media builders */
   const errBox = (msg, url) => {
@@ -348,16 +362,30 @@ function start() {
     if (m) return 'Post.txt could not be loaded (error ' + m[1] + '). Try again in a minute.';
     return 'Post.txt could not be loaded. Check your connection, then try again.';
   };
-  async function fetchText() { // GitHub raw first, then Post.txt next to this page
+  async function fetchText() {
+    // Read the plain-text file, never the GitHub HTML preview. Cache-busting helps after edits.
+    const raw = toRaw(CONFIG.posts);
+    const urls = [
+      raw + (raw.includes('?') ? '&' : '?') + 'v=' + Date.now(),
+      'https://api.github.com/repos/uuhjeike/Black-Hole/contents/Post.txt?ref=main',
+      new URL('Post.txt', document.baseURI).href
+    ];
     let err;
-    for (const u of [toRaw(CONFIG.posts), 'Post.txt']) {
+    for (const u of urls) {
       try {
-        const r = await fetch(u, { cache: 'no-cache' });
-        if (r.ok) return await r.text();
-        err = new Error('HTTP ' + r.status);
+        const r = await fetch(u, { cache: 'no-store', headers: { Accept: u.includes('api.github.com') ? 'application/vnd.github+json' : 'text/plain' } });
+        if (!r.ok) { err = new Error('HTTP ' + r.status); continue; }
+        if (u.includes('api.github.com')) {
+          const data = await r.json();
+          if (!data || !data.content) throw new Error('GitHub API returned no file content');
+          const binary = atob(data.content.replace(/\s/g, ''));
+          const bytes = Uint8Array.from(binary, c => c.charCodeAt(0));
+          return new TextDecoder('utf-8').decode(bytes);
+        }
+        return await r.text();
       } catch (e) { err = e; }
     }
-    throw err;
+    throw err || new Error('Unable to fetch Post.txt');
   }
   function setBio(t) {
     bioEl.textContent = '';
