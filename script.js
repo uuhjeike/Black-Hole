@@ -263,7 +263,25 @@ function start() {
   }
 
   const PART = {
-    text: p => { const n = el('p', 'txt'); linkify(n, p.text); return n; },
+    text: p => {
+      const wrap = el('div', 'txt-wrap');
+      const n = el('p', 'txt is-collapsed'); linkify(n, p.text);
+      const more = el('button', 'text-more', 'See more');
+      more.type = 'button';
+      // Show the control for long content; CSS clamps the visible text to six lines.
+      const long = p.text.split('\n').length > 6 || p.text.length > 320;
+      if (long) {
+        more.setAttribute('aria-expanded', 'false');
+        more.addEventListener('click', () => {
+          const expanded = n.classList.toggle('is-expanded');
+          n.classList.toggle('is-collapsed', !expanded);
+          more.textContent = expanded ? 'See less' : 'See more';
+          more.setAttribute('aria-expanded', String(expanded));
+        });
+      } else more.hidden = true;
+      wrap.append(n, more);
+      return wrap;
+    },
 
     images: p => {
       const many = p.items.length > 1;
@@ -324,7 +342,7 @@ function start() {
     for (const p of parts) art.append(PART[p.type](p));
     return art;
   }
-  const sep = () => { const s = el('div', 'sep'); s.setAttribute('role', 'separator'); s.append(el('i')); return s; };
+  const sep = () => null;
 
   /* Posts render in small batches so the DOM and network stay light. */
   const mio = 'IntersectionObserver' in window
@@ -333,7 +351,6 @@ function start() {
   function renderMore() {
     const end = Math.min(shown + CONFIG.pageSize, all.length), frag = document.createDocumentFragment();
     for (let i = shown; i < end; i++) {
-      if (i > 0) frag.append(sep());
       try { frag.append(renderPost(all[i])); }
       catch (e) { frag.append(el('div', 'err', 'This post couldn’t be displayed.')); }
     }

@@ -13,3 +13,7 @@ What was changed:
 - GitHub blob media links are converted to raw URLs for media playback.
 
 Keep Post.txt in the same public repository and branch, and keep its filename capitalization exactly Post.txt. The browser must be online to load GitHub-hosted posts/video. Autoplay may be restricted by some browser settings; the profile video is muted to maximize autoplay compatibility.
+
+- Each post now has its own compact, auto-sized card/bar instead of one large shared panel.
+- Long text is clamped to six visible lines with a See more / See less control.
+- Post cards use a compact responsive layout for text, images, videos, audio, and links.

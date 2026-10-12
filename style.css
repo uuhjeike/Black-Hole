@@ -66,18 +66,34 @@ h1{
 .count{margin-top:18px;font-size:.88rem;color:var(--mist)}
 
 /* Feed */
-.feed{
-  min-height:140px;padding:26px 18px;
-  background:var(--panel);border:1px solid var(--line);border-radius:20px;
+.feed{min-height:100px;padding:0;background:transparent;border:0;border-radius:0}
+#list{display:grid;gap:12px}
+/* Every post gets its own compact bar; its height follows its content. */
+.post{
+  min-width:0;padding:14px;background:var(--panel);
+  border:1px solid var(--line);border-radius:15px;
+  overflow:hidden;overflow-wrap:anywhere;
 }
-.post>*+*{margin-top:14px}
+.post>*+*{margin-top:12px}
+.txt-wrap{min-width:0}
 .txt{
   white-space:pre-wrap;overflow-wrap:anywhere;
-  color:#e7e8ee;font-size:1.02rem;line-height:1.8;
+  color:#e7e8ee;font-size:1rem;line-height:1.7;
 }
+.txt.is-collapsed{
+  display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:6;
+  line-clamp:6;overflow:hidden;max-height:10.2em;
+}
+.text-more{
+  display:inline-block;margin-top:5px;padding:2px 0;color:var(--silver);
+  font-size:.88rem;text-decoration:underline;text-decoration-color:var(--violet);
+  text-underline-offset:3px;
+}
+.text-more[hidden]{display:none!important}
+
 
 /* Separator between posts: a fading line with a small violet event-horizon ring */
-.sep{display:flex;align-items:center;gap:14px;margin:30px 0}
+.sep{display:none;align-items:center;gap:14px;margin:30px 0}
 .sep::before,.sep::after{content:"";flex:1;height:1px}
 .sep::before{background:linear-gradient(90deg,transparent,rgba(201,204,214,.38))}
 .sep::after{background:linear-gradient(270deg,transparent,rgba(201,204,214,.38))}
@@ -149,7 +165,7 @@ audio{display:block;width:100%;height:40px}
 @media (min-width:600px){
   .wrap{padding-left:20px;padding-right:20px}
   .avatar{width:176px;height:176px}
-  .feed{padding:34px 32px}
+  .post{padding:18px 20px}
 }
 @media (prefers-reduced-motion:reduce){
   .avatar::before{animation:none}
