@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#050507">
+<meta name="color-scheme" content="dark">
+<meta name="description" content="BLACK HOLE: personal profile and posts.">
+<title>BLACK HOLE</title>
+<link rel="stylesheet" href="style.css">
+<script src="script.js" defer></script>
+</head>
+<body>
+
+<!-- Background video: its source is set by script.js (CONFIG.video) after the page has loaded. -->
+<video id="bg" muted loop playsinline preload="none" disablepictureinpicture disableremoteplayback aria-hidden="true" tabindex="-1"></video>
+<div class="veil" aria-hidden="true"></div>
+
+<main class="wrap">
+  <header class="profile">
+    <button class="avatar" id="avatar" type="button" aria-label="Open profile photo full screen">
+      <img id="avatar-img" alt="Profile photo" width="152" height="152" decoding="async" fetchpriority="high">
+    </button>
+    <h1>BLACK HOLE</h1>
+    <p class="bio" id="bio" hidden></p>
+    <p class="count" id="count" hidden></p>
+  </header>
+
+  <section class="feed" id="feed" aria-label="Posts" aria-busy="true">
+    <p class="state" id="state" role="status">Loading posts…</p>
+    <div id="list"></div>
+    <button class="more" id="more" type="button" hidden>Show more posts</button>
+  </section>
+</main>
+
+<!-- Full-screen image viewer -->
+<div class="viewer" id="viewer" role="dialog" aria-modal="true" aria-label="Image viewer" hidden>
+  <button class="vbtn vclose" id="vclose" type="button" aria-label="Close viewer">×</button>
+  <button class="vbtn vprev" id="vprev" type="button" aria-label="Previous photo">‹</button>
+  <img id="viewer-img" alt="">
+  <button class="vbtn vnext" id="vnext" type="button" aria-label="Next photo">›</button>
+  <p class="vnote" id="viewer-note" aria-live="polite"></p>
+</div>
+
+<noscript><p class="state">BLACK HOLE needs JavaScript to load its posts.</p></noscript>
+</body>
+</html>
